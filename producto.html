@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Casa Thiaguito | Detalle del Producto</title>
 
-<!-- Fuente moderna y FontAwesome para íconos profesionales -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -38,7 +37,6 @@ body{
   -webkit-font-smoothing: antialiased;
 }
 
-/* NAVBAR DE NAVEGACIÓN CON LOGO INCORPORADO */
 .nav-header {
   max-width: 500px;
   margin: 0 auto 15px auto;
@@ -67,7 +65,6 @@ body{
 }
 .btn-back:hover { color: var(--primary); background: #feecef; }
 
-/* LOGO RESCALADO */
 .logo-nav {
   display: flex;
   align-items: center;
@@ -115,7 +112,6 @@ body{
   border: 1.5px solid white;
 }
 
-/* CONTENEDOR PRINCIPAL */
 .container{
   max-width: 500px;
   margin: auto;
@@ -166,7 +162,6 @@ img{
   margin: 15px 0;
 }
 
-/* CONTROLADOR DE CANTIDAD */
 .cantidad{
   display: flex;
   align-items: center;
@@ -214,7 +209,6 @@ img{
   text-align: center;
 }
 
-/* BOTONES DE ACCIÓN */
 .add{
   width: 100%;
   padding: 15px;
@@ -254,7 +248,6 @@ img{
 }
 .buy:hover { background: var(--primary-hover); transform: translateY(-1px); }
 
-/* POPUP REFINADO */
 .popup-bg{
   position: fixed;
   top: 0;
@@ -341,7 +334,6 @@ img{
 }
 .btn-popup-secondary:hover { background: #f8f9fa; }
 
-/* ERROR STATE */
 .error-box {
   text-align: center;
   padding: 40px 20px;
@@ -362,21 +354,19 @@ img{
 
 <body>
 
-<!-- NAVBAR ACCESOS RÁPIDOS CON LOGO INTEGRADO -->
 <div class="nav-header">
-  <button class="btn-back" onclick="location.href='index.html'">
+  <button class="btn-back" onclick="window.location.href='index.html'">
     <i class="fa-solid fa-arrow-left"></i>
   </button>
   <div class="logo-nav">
     <img src="Casa thiaguito.png" alt="Casa Thiaguito">
   </div>
-  <button class="cart-icon" onclick="location.href='carrito.html'">
+  <button class="cart-icon" onclick="window.location.href='carrito.html'">
     <i class="fa-solid fa-bag-shopping"></i>
     <div class="cart-badge" id="cart-count">0</div>
   </button>
 </div>
 
-<!-- CONTENEDOR PRODUCTO -->
 <div class="container" id="main-container">
   <div class="img-wrapper">
     <img id="img" alt="Cargando producto...">
@@ -386,7 +376,6 @@ img{
     <div class="nombre" id="nombre"></div>
     <div class="precio" id="precio"></div>
     
-    <!-- CONTROLADOR CANTIDAD -->
     <div class="cantidad">
       <span class="cant-label">Cantidad</span>
       <div class="selectors">
@@ -396,10 +385,8 @@ img{
       </div>
     </div>
 
-    <!-- TOTAL DINÁMICO -->
     <div class="total" id="total"></div>
 
-    <!-- BOTONES ACCIÓN -->
     <button class="add" onclick="addCart()">
       <i class="fa-solid fa-cart-plus"></i> Agregar al carrito
     </button>
@@ -410,7 +397,6 @@ img{
   </div>
 </div>
 
-<!-- POPUP MODERNO -->
 <div class="popup-bg" id="popup">
   <div class="popup">
     <div class="popup-icon">
@@ -420,7 +406,7 @@ img{
     <p>El producto ya está listo en tu carrito.</p>
     
     <div class="popup-buttons">
-      <button class="btn-popup-primary" onclick="location.href='carrito.html'">
+      <button class="btn-popup-primary" onclick="window.location.href='carrito.html'">
         Ver mi Carrito
       </button>
       <button class="btn-popup-secondary" onclick="cerrarPopup()">
@@ -430,9 +416,12 @@ img{
   </div>
 </div>
 
+<!-- Opcional: si usas un archivo productos.js global, se puede cargar aquí -->
+<script src="productos.js"></script>
+
 <script>
-// 📦 BASE DE DATOS DE PRODUCTOS SINCRONIZADA CON EL INDEX
-const productos = [
+// Lista de fallback si no existe el archivo productos.js
+const baseProd = [
   {id:1, nombre:"reflector luz fria 200w", img:"luz fria 200w.jpg", precio:130000},
   {id:2, nombre:"Reflectorluz fria 20w", img:"luz fria 20w.jpg", precio:45000},
   {id:3, nombre:"Reflector 50w luz fria", img:"luz fria 50w.jpg", precio:75000},
@@ -441,49 +430,54 @@ const productos = [
   {id:6, nombre:"Reflector LED 500w luz fria", img:"500w.jpg", precio:290000},
   {id:7, nombre:"Reflector LED 300w luz fria", img:"300w.jpg", precio:200000},
   {id:8, nombre:"Reflector LED 100w luz fria", img:"100w.jpg", precio:180000},
-    {id:9, nombre:"Reflector LED 30w luz calida", img:"30wcalida.jpg", precio:65000},
-  
+  {id:9, nombre:"Reflector LED 30w luz calida", img:"30wcalida.jpg", precio:65000}
 ];
 
-// OBTENER ID PASADO POR URL
-const params = new URLSearchParams(window.location.search);
-const id = parseInt(params.get("id"));
-const prod = productos.find(p => p.id === id);
+// Obtener productos desde window.productos (si existe productos.js), LocalStorage o lista Base
+let catalogoCompleto = [];
+if (typeof productos !== 'undefined' && Array.isArray(productos)) {
+  catalogoCompleto = productos;
+} else {
+  const localData = JSON.parse(localStorage.getItem("productos")) || [];
+  catalogoCompleto = [...baseProd, ...localData];
+}
 
-// MANEJO DE ERROR SI EL PRODUCTO NO SE ENCUENTRA
+// LECTURA DE PARÁMETROS EN URL
+const params = new URLSearchParams(window.location.search);
+const idParam = params.get("id");
+
+// Buscar comparando cadenas para evitar fallos tipo/número
+const prod = catalogoCompleto.find(p => String(p.id) === String(idParam));
+
 if(!prod){
   document.getElementById("main-container").innerHTML = `
     <div class="error-box">
       <i class="fa-solid fa-triangle-exclamation" style="font-size: 40px; color: var(--primary); margin-bottom: 15px;"></i>
       <h2>Producto no encontrado</h2>
       <p>El artículo solicitado no existe o fue removido.</p>
-      <button onclick="location.href='index.html'">Volver al inicio</button>
+      <button onclick="window.location.href='index.html'">Volver al inicio</button>
     </div>
   `;
 } else {
-  // MONTAR INFORMACIÓN EN EL HTML
   document.getElementById("img").src = prod.img;
   document.getElementById("nombre").innerText = prod.nombre;
-  document.getElementById("precio").innerText = "Precio unitario: " + prod.precio.toLocaleString() + " Gs";
+  document.getElementById("precio").innerText = "Precio unitario: " + Number(prod.precio).toLocaleString() + " Gs";
 }
 
 let cantidad = 1;
 
-// RE-CALCULAR E IMPRIMIR EL TOTAL
 function updateTotal(){
   if(!prod) return;
-  let total = prod.precio * cantidad;
+  let total = Number(prod.precio) * cantidad;
   document.getElementById("cant").innerText = cantidad;
   document.getElementById("total").innerText = "Total: " + total.toLocaleString() + " Gs";
 }
 
-// SUMAR
 function mas(){
   cantidad++;
   updateTotal();
 }
 
-// RESTAR
 function menos(){
   if(cantidad > 1){
     cantidad--;
@@ -491,27 +485,21 @@ function menos(){
   }
 }
 
-// ACTUALIZAR CIRCULITO FLOTANTE DEL NAVBAR
 function actualizarMiniContador() {
   let cart = JSON.parse(localStorage.getItem("cart")) || [];
-  let totalItems = cart.reduce((suma, p) => suma + p.cantidad, 0);
+  let totalItems = cart.reduce((suma, p) => suma + (p.cantidad || 1), 0);
   let badge = document.getElementById("cart-count");
   
   if(badge) {
     badge.innerText = totalItems;
-    if(totalItems === 0) {
-      badge.style.display = "none";
-    } else {
-      badge.style.display = "flex";
-    }
+    badge.style.display = totalItems === 0 ? "none" : "flex";
   }
 }
 
-// 🛒 ACCIÓN: AGREGAR AL CARRITO
-function addCart(){
+function guardarEnCarrito(){
   if(!prod) return;
   let cart = JSON.parse(localStorage.getItem("cart")) || [];
-  let item = cart.find(p => p.id === prod.id);
+  let item = cart.find(p => String(p.id) === String(prod.id));
 
   if(item){
     item.cantidad += cantidad;
@@ -520,47 +508,32 @@ function addCart(){
       id: prod.id,
       nombre: prod.nombre,
       precio: prod.precio,
+      img: prod.img,
       cantidad: cantidad
     });
   }
 
   localStorage.setItem("cart", JSON.stringify(cart));
-  
-  // Actualizar el circulito al instante sin recargar la web
+}
+
+function addCart(){
+  guardarEnCarrito();
   actualizarMiniContador();
-  
-  // Mostrar el popup moderno
   document.getElementById("popup").style.display = "flex";
 }
 
-// CERRAR POPUP
 function cerrarPopup(){
   document.getElementById("popup").style.display = "none";
 }
 
-// ⚡ ACCIÓN: COMPRAR AHORA
 function buyNow(){
-  if(!prod) return;
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
-  let item = cart.find(p => p.id === prod.id);
-
-  if(item){
-    item.cantidad += cantidad;
-  } else {
-    cart.push({
-      id: prod.id,
-      nombre: prod.nombre,
-      precio: prod.precio,
-      cantidad: cantidad
-    });
-  }
-
-  localStorage.setItem("cart", JSON.stringify(cart));
+  guardarEnCarrito();
   window.location.href = "carrito.html";
 }
 
-// INICIALIZADORES AL ENTRAR A LA PÁGINA
-updateTotal();
+if(prod) {
+  updateTotal();
+}
 actualizarMiniContador();
 </script>
 
